@@ -5,10 +5,15 @@ const Vigenere = require('caesar-salad').Vigenere;
 
 const linksRouter = express.Router();
 
-linksRouter.get("/", async (req, res,next) => {
+linksRouter.get("/:url", async (req, res,next) => {
+   const url = req.params.url;
     try {
-        const result = await Link.find();
-        res.send(result);
+        const result = await Link.find({shortUrl: url});
+        if (result.length > 0 && result[0].shortUrl === url) {
+            res.status(301).redirect(result[0].originalUrl);
+        } else {
+            res.status(404).send("link not found!");
+        }
     } catch (e) {
         next(e)
     }
