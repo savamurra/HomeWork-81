@@ -2,7 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import mongoDb from "./mongoDb";
 import linksRouter from "./routers/Links";
-import cors from "cors";
+const cors = require('cors');
 
 
 const app = express();

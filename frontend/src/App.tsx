@@ -1,8 +1,9 @@
 import './App.css'
 import {FormEvent, useState} from "react";
-import {createLink, fetchLink,} from "./store/linkThunk.ts";
+import {createLink, fetchLinkByUrl,} from "./store/linkThunk.ts";
 import {useAppDispatch, useAppSelector} from "./app/hooks.ts";
-import {url} from "./store/linkSlice.ts";
+import {isCreat, url} from "./store/linkSlice.ts";
+import Spinner from "./components/UI/Spinner/Spinner.tsx";
 
 
 const initialState = {
@@ -13,6 +14,7 @@ const initialState = {
 const App = () => {
     const [form, setForm] = useState(initialState);
     const dispatch = useAppDispatch();
+    const create = useAppSelector(isCreat);
 
     const original = useAppSelector(url);
 
@@ -28,14 +30,14 @@ const App = () => {
     const submitFormHandler = async (e: FormEvent) => {
         e.preventDefault();
         await dispatch(createLink(form));
-        await dispatch(fetchLink())
         setForm(initialState);
     };
 
-
-    console.log(original);
-
-
+    const redirectHandler = async () => {
+        if (original) {
+            await dispatch(fetchLinkByUrl(original.shortUrl))
+        }
+    }
 
     return (
         <div>
@@ -47,19 +49,26 @@ const App = () => {
                            name="originalUrl"
                            id="originalUrl" placeholder="Enter your URL here"/>
                 </div>
-                <button type="submit">Shorten</button>
+                <button type="submit" disabled={create}>Shorten</button>
             </form>
 
-
-            <p>Your link now looks like this:</p>
-            {/*<a*/}
-            {/*    href={original[0].originalUrl}*/}
-            {/*    target="_blank"*/}
-            {/*    rel="noopener noreferrer"*/}
-            {/*>*/}
-            {/*    http://localhost:8000/{original.[]}*/}
-            {/*</a>*/}
-
+            {create ? (
+                <Spinner />
+            ) : (
+                original && (
+                    <>
+                        <p>Your link now looks like this:</p>
+                        <a
+                            href={original.originalUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={redirectHandler}
+                        >
+                            http://localhost:8000/{original.shortUrl}
+                        </a>
+                    </>
+                )
+            )}
         </div>
     )
 };

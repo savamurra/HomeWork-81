@@ -1,18 +1,30 @@
 import express from "express";
 import Link from "../models/Link";
 import {DatabaseWithoutId} from "../types";
-const Vigenere = require('caesar-salad').Vigenere;
 
 const linksRouter = express.Router();
 
+const generateRandomString = (length: number): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+};
+
+
 linksRouter.get("/:url", async (req, res,next) => {
    const url = req.params.url;
+
     try {
-        const result = await Link.find({shortUrl: url});
-        if (result.length > 0 && result[0].shortUrl === url) {
-            res.status(301).redirect(result[0].originalUrl);
+        const result = await Link.findOne({shortUrl: url});
+        if (result) {
+            res.status(301).redirect(result.originalUrl);
+            return;
         } else {
             res.status(404).send("link not found!");
+            return;
         }
     } catch (e) {
         next(e)
@@ -25,12 +37,9 @@ linksRouter.post("/", async (req, res,next) => {
         return;
     }
 
-    const shortedLink = Vigenere.Cipher('password').crypt(req.body.originalUrl).replace(/[^a-zA-Z0-9]/g, '').slice(0,7)
-
-
     const newLink: DatabaseWithoutId = {
         originalUrl: req.body.originalUrl,
-        shortUrl: shortedLink,
+        shortUrl: generateRandomString(6)
     }
 
     try {
